@@ -1,10 +1,22 @@
 <?php
-class MySQL
+class DB
 {
-    const connection = new mysqli('localhost', 'root', '', 'aulas');
+    private static $connection;
     const clausesSelect = ['select'=>'select ?', 'table'=>' from ?', 'where'=>' where ?', 'groupBy'=>' group by ?', 'having'=>' having ?', 'orderBy'=>' order by ?', 'offset'=>' offset ? rows', 'limit'=>' limit ?']
 
 
+	public static function start($endereco = 'localhost', $usuario = 'root', $senha='', $database='aulas')
+	{
+		self::connection = new mysqli($endereco, $usuario, $senha, $database);
+	}
+	
+	private static function getConnection()
+	{
+		if($connection)
+			return connection;
+		else
+			throw new Exception('Banco de dados não definido, execute a função DB::start().');
+	}
     public static function selectClass($class, $queryData = [])
     {
         $queryData['table'] = $class::table;
@@ -28,7 +40,7 @@ class MySQL
                 $query = $query.str_replace('?', '*', $sintaxe);
             }
         }
-        $resultado = mysqli_query(self::connection, $query);
+        $resultado = mysqli_query(self::getConnection(), $query);
         $retorno = array();
         while ($row = mysqli_fetch_array($resultado)) {
             $retorno[] = $row;
@@ -53,7 +65,7 @@ class MySQL
                 $sql = $sql."null,";
         }
         $sql = substr($sql, 0, -1).')';
-        if(mysqli_query(self::connection, $sql))
+        if(mysqli_query(self::getConnection(), $sql))
             return true;
 
         return false;
@@ -67,7 +79,7 @@ class MySQL
             $sql = $sql." where $where";
         }
 
-        if(mysqli_query(self::connection, $sql))
+        if(mysqli_query(self::getConnection(), $sql))
             return true;
 
         return false;
@@ -85,7 +97,7 @@ class MySQL
             else
                 $sql = $sql."$field = null,";
         }
-        if(mysqli_query(self::connection, substr($sql, 0, -1)."where $where"))
+        if(mysqli_query(self::getConnection(), substr($sql, 0, -1)."where $where"))
             return true;
 
         return false;
