@@ -1,32 +1,62 @@
 <?php
+spl_autoload_register(function ($name) {
+    include_once($name . '.php');
+});
+
 class DBClass
 {
-    const connection = new mysqli('localhost', 'root', '', 'aulas');
 
-    public function __construct($arguments)
+    protected $data = [];
+
+    public function __construct($arguments=[])
     {
         $this->set($arguments);
     }
+    public static function create(...$arguments)
+    {
+        $class = get_called_class();
+        foreach($arguments as $data)
+        {
+            $obj = new $class($data);
+            $obj->insert();
+        }
+        return true;
+    }
 
+    public static function onlyPrimary($value)
+    {
+        if(is_object($value))
+            return $value->getPrimary();
+        return $value;
+    }
 
     public static function all()
     {
-        return DB::selectClass(get_called_class());
+        return DB::selectObject(get_called_class());
     }
 
     public static function where($where = 'true')
     {
-        return DB::selectClass(get_called_class(), ['where'=>$where]);
+        return DB::selectObject(get_called_class(), ['where'=>$where]);
     }
 
     public static function first($where = 'true')
     {
-        return (DB::selectClass(get_called_class(), ['where'=>$where, 'limit'=>1]))[0];
+        $lista = (DB::selectObject(get_called_class(), ['where'=>$where, 'limit'=>1]));
+        return (sizeof($lista))? $lista[0] : false;
     }
     public static function find($pk)
     {
-        return (DB::selectClass(get_called_class(), ['where'=> ($this::primary." = '$pk'")]))[0];
+        $class = get_called_class();
+        $lista = (DB::selectObject($class, ['where'=> ($class::primary." = '$pk'")]));
+        return (sizeof($lista))? $lista[0] : false;
     }
+    
+    public static function paginate($pular, $quantidade)
+    {
+        return DB::select('pessoa', ['limit'=>$quantidade,'offset'=>$pular]);
+    }
+    
     public function __set ($name, $value)
     {
         if(isset($this::fields[$name]))
@@ -34,22 +64,37 @@ class DBClass
     }
     public function __get ($name)
     {
-        if(isset($this::fields[$name]))
-            return $this->data[$name];
+        if(in_array($name, $this::fields))
+        {
+            if(isset($this->data[$name]))
+                return $this->data[$name];
+            return false;
+        }
+
     }
-    public function __invoke($arguments = $this::fields) {
+    public function __invoke($arguments = null) {
+        if($arguments == null)
+            $arguments = $this::fields;
+
         $data = array();
         foreach($arguments as $key){
-            if(isset($this::fields[$key]))
-                $data[$key] = $this->data[$key];
+            if(in_array($key, $this::fields)){
+                if(isset($this->data[$key]))
+                    $data[$key] = $this->data[$key];
+                else
+                    $data[$key] = false;
+            }
+
         }
         return $data;
     }
     public function set($arguments)
     {
         foreach($arguments as $key => $value){
-            if(isset($this::fields[$key]))
+            if(in_array($key, $this::fields))
+            {
                 $this->data[$key] = $value;
+            }
         }
     }
     public function save()
@@ -64,30 +109,24 @@ class DBClass
             return $this->insert();
         }
     }
-    public function create(...$arguments)
-    {
-        $class = get_called_class();
-        foreach($arguments as $data)
-        {
-            $obj = new $class($data);
-            $obj->insert();
-        }
-        return true;
-    }
+
     public function insert()
     {
-        return DB::update($this::table, $this->data));
+        return DB::insert($this::table, $this());
     }
 
     public function update()
     {
-        return DB::insert($this::table, $this->data));
+        $pk = $this->data[$this::primary];
+        return DB::update($this::table, $this(),$this::primary." = '$pk'");
     }
 
-    public function update()
+    public function delete()
     {
-        return DB::insert($this::table, $this->data));
+        $pk = $this->data[$this::primary];
+        return DB::delete($this::table,$this::primary." = '$pk'");
     }
+
 
     public function refresh()
     {
@@ -111,9 +150,11 @@ class DBClass
     . implode(', ', $arguments). "\n";
     }
 
-
-
-
+    public function getPrimary()
+    {
+        $primary = $this::primary;
+        return $this->__get($primary);
+    }
 
 }
 ?>

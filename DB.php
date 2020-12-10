@@ -1,39 +1,53 @@
 <?php
 class DB
 {
-    private static $connection;
-    const clausesSelect = ['select'=>'select ?', 'table'=>' from ?', 'where'=>' where ?', 'groupBy'=>' group by ?', 'having'=>' having ?', 'orderBy'=>' order by ?', 'offset'=>' offset ? rows', 'limit'=>' limit ?']
+    private static $connection = null;
+    private static $lastQuery = '""';
+    const clausesSelect = ['select'=>'select ?', 'table'=>' from ?', 'where'=>' where ?', 'groupBy'=>' group by ?', 'having'=>' having ?', 'orderBy'=>' order by ?', 'limit'=>' limit ?', 'offset'=>' offset ?'];
 
 
-	public static function start($endereco = 'localhost', $usuario = 'root', $senha='', $database='aulas')
+    public static function setLastQuery($query)
+    {
+        self::$lastQuery = $query;
+    }
+
+    public static function getLastQuery()
+    {
+        return '"'.self::$lastQuery.'"<br>';
+    }
+
+	public static function setConnection($endereco = 'localhost', $usuario = 'root', $senha='', $database='acheadvogados')
 	{
-		self::connection = new mysqli($endereco, $usuario, $senha, $database);
+		self::$connection = new mysqli($endereco, $usuario, $senha, $database);
 	}
 	
 	private static function getConnection()
 	{
-		if($connection)
-			return connection;
-		else
-			throw new Exception('Banco de dados não definido, execute a função DB::start().');
+		if(!self::$connection)
+		    self::setConnection();
+
+        return self::$connection;
+			//throw new Exception('Banco de dados não definido, execute a função DB::setConnection().');
 	}
-    public static function selectClass($class, $queryData = [])
+    public static function selectObject($class, $queryData = [])
     {
-        $queryData['table'] = $class::table;
-        foreach (self::select($queryData) as $row) {
+        $retorno = [];
+        foreach (self::select($class::table, $queryData) as $row) {
             $retorno[] = new $class($row);
         }
         return $retorno;
     }
 
-    public static function select($queryData)
+    public static function select($table,$queryData=[])
     {
+        if(!isset($queryData['table']))
+            $queryData['table'] = $table;
         $query = '';
-        foreach($this::clausesSelect as $clause=>$sintaxe)
+        foreach(self::clausesSelect as $clause=>$sintaxe)
         {
-            if(isset($queryData[$key]))
+            if(isset($queryData[$clause]))
             {
-                $query = $query.str_replace('?', $queryData[$key], $sintake)
+                $query = $query.str_replace('?', $queryData[$clause], $sintaxe);
             }
             elseif($clause=='select')
             {
@@ -41,8 +55,10 @@ class DB
             }
         }
         $resultado = mysqli_query(self::getConnection(), $query);
+        self::setLastQuery($query);
         $retorno = array();
-        while ($row = mysqli_fetch_array($resultado)) {
+        //echo $query.'<br>';
+        while ($row = @mysqli_fetch_array($resultado)) {
             $retorno[] = $row;
         }
         return $retorno;
@@ -50,7 +66,7 @@ class DB
 
     public static function insert($table, $fields)
     {
-        $sql = "insert into ".$table.' ('
+        $sql = "insert into ".$table.' (';
 
         foreach($fields as $field=>$value)
         {
@@ -65,6 +81,7 @@ class DB
                 $sql = $sql."null,";
         }
         $sql = substr($sql, 0, -1).')';
+        self::setLastQuery($sql);
         if(mysqli_query(self::getConnection(), $sql))
             return true;
 
@@ -78,7 +95,7 @@ class DB
         {
             $sql = $sql." where $where";
         }
-
+        self::setLastQuery($sql);
         if(mysqli_query(self::getConnection(), $sql))
             return true;
 
@@ -97,7 +114,9 @@ class DB
             else
                 $sql = $sql."$field = null,";
         }
-        if(mysqli_query(self::getConnection(), substr($sql, 0, -1)."where $where"))
+        $sql = substr($sql, 0, -1)." where $where";
+        self::setLastQuery($sql);
+        if(mysqli_query(self::getConnection(), $sql))
             return true;
 
         return false;
