@@ -6,7 +6,7 @@ spl_autoload_register(function ($name) {
 class DBClass
 {
 
-    protected $data = [];
+    protected $data = [],$relations=[];
 
     public function __construct($arguments=[])
     {
@@ -64,13 +64,15 @@ class DBClass
     }
     public function __get ($name)
     {
+
         if(in_array($name, $this::fields))
         {
             if(isset($this->data[$name]))
                 return $this->data[$name];
             return false;
         }
-
+        else
+            return ($this->$name())->get();
     }
     public function __invoke($arguments = null) {
         if($arguments == null)
@@ -97,17 +99,31 @@ class DBClass
             }
         }
     }
-    public function save()
+    public function save($saveRelations = true)
     {
         $pk = $this->data[$this::primary];
         if($pk!=null && $this::find($pk))
         {
-            return $this->update();
+            $r = $this->update();
         }
         else
         {
-            return $this->insert();
+            $r = $this->insert();
         }
+        if($saveRelations)
+            $this->saveRelations();
+
+        return $r;
+
+    }
+
+    public function saveRelations()
+    {
+        foreach($this->relations as $relation)
+        {
+            $relation->save();
+        }
+        return true;
     }
 
     public function insert()
@@ -139,11 +155,34 @@ class DBClass
         return false;
     }
 
+    public function oneToMany($classOutra, $fk)
+    {
+        $function = debug_backtrace()[1]["function"];
+        if(!isset($this->relations[$function]))
+            $this->relations[$function] = new ManyToOne($classOutra, $this, $fk);
+        return $this->relations[$function];
+    }
+
+    public function ManyToOne($classOutra, $fk)
+    {
+        $function = debug_backtrace()[1]["function"];
+        if(!isset($this->relations[$function]))
+            $this->relations[$function] = new ManyToOne($classOutra, $this, $fk);
+        return $this->relations[$function];
+    }
+
+    public function ManyToMany($classOutra, $tabelaRel, $fkOutra, $fkLocal)
+    {
+        $function = debug_backtrace()[1]["function"];
+        if(!isset($this->relations[$function]))
+            $this->relations[$function] = new ManyToMany($classOutra, $this, $tabelaRel, $fkOutra, $fkLocal);
+        return $this->relations[$function];
+    }
+
 
 
     public function __call($name, $arguments) {
-    echo "Chamando método '$name' "
-    . implode(', ', $arguments). "\n";
+        throw new Exception("Não existe '$name' na classe ".get_called_class());
     }
     public static function __callStatic($name, $arguments) {
     echo "Chamando método estático '$name' "

@@ -16,7 +16,7 @@ class DB
         return '"'.self::$lastQuery.'"<br>';
     }
 
-	public static function setConnection($endereco = 'localhost', $usuario = 'root', $senha='', $database='acheadvogados')
+	public static function setConnection($endereco = 'localhost', $usuario = 'root', $senha='', $database='aulas')
 	{
 		self::$connection = new mysqli($endereco, $usuario, $senha, $database);
 	}

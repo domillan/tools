@@ -120,7 +120,7 @@ class ManyToMany
             $listaAntiga = $this->getIds();
             $insert = array_diff($this->lista, $listaAntiga);
             DB::delete($this->tabelaRel, $this->condition("$this->foreignKeyOutra not in (" . implode($this->lista, ',') . ')'));
-            echo '<br><br>' . DB::getLastQuery();
+            //echo '<br><br>' . DB::getLastQuery();
             foreach ($insert as $id) {
                 DB::insert($this->tabelaRel, [$this->foreignKeyLocal => $this->objLocal->getPrimary(), $this->foreignKeyOutra => $id]);
                 //echo '<br><br>'.DB::getLastQuery();
