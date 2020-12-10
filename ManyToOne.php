@@ -1,7 +1,8 @@
 <?php
 //classLocal tem uma classOutra
 //classOutra tem várias classLocal
-class ManyToOne
+include_once('Relation.php');
+class ManyToOne implements Relation
 {
     private $classOutra, $objLocal, $foreignKey, $objeto;
     public function __construct($classOutra, $objLocal, $foreignKey)
@@ -77,15 +78,15 @@ class ManyToOne
     }
 
 
-    public function add($argument)
+    public function add(...$arguments)
     {
-        $this->set(DBClass::onlyPrimary($argument));
+        $this->set(DBClass::onlyPrimary($argument[0]));
     }
-    public function set($argument)
+    public function set(...$arguments)
     {
-        $this->objeto = DBClass::onlyPrimary($argument);
+        $this->objeto = DBClass::onlyPrimary($argument[0]);
     }
-    public function remove()
+    public function remove(...$arguments)
     {
         $this->objeto = null;
     }

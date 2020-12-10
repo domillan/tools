@@ -2,13 +2,24 @@
 class DB
 {
     private static $connection = null;
-    private static $lastQuery = '""';
+    private static $lastQuery = '""', $debug=false;
     const clausesSelect = ['select'=>'select ?', 'table'=>' from ?', 'where'=>' where ?', 'groupBy'=>' group by ?', 'having'=>' having ?', 'orderBy'=>' order by ?', 'limit'=>' limit ?', 'offset'=>' offset ?'];
 
+
+    public static function debugOn()
+    {
+        self::$debug = true;
+    }
+    public static function debugOff()
+    {
+        self::$debug = false;
+    }
 
     public static function setLastQuery($query)
     {
         self::$lastQuery = $query;
+        if(self::$debug)
+            echo self::getLastQuery();
     }
 
     public static function getLastQuery()

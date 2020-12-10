@@ -1,7 +1,8 @@
 <?php
 //classLocal tem várias classOutra
 //classOutra tem uma classLocal
-class OneToMany
+include_once('Relation.php');
+class OneToMany implements Relation
 {
     private $classOutra, $objLocal, $foreignKey, $lista = [];
     public function __construct($classOutra, $objLocal, $foreignKey)

@@ -1,7 +1,8 @@
 <?php
 //classLocal tem várias classOutra
 //classOutra tem várias classLocal
-class ManyToMany
+include_once('Relation.php');
+class ManyToMany implements Relation
 {
     private $classOutra, $objLocal, $tabelaRel, $foreignKeyOutra, $foreignKeyLocal, $lista = [];
     public function __construct($classOutra, $objLocal, $tabelaRel, $foreignKeyOutra, $foreignKeyLocal)
