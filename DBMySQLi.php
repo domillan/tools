@@ -1,5 +1,6 @@
 <?php
-class DB
+//DEPRECATED
+class DBMySQLi
 {
     private static $connection = null;
     private static $lastQuery = '""', $debug=false;
@@ -27,9 +28,9 @@ class DB
         return '"'.self::$lastQuery.'"<br>';
     }
 
-	public static function setConnection($endereco = 'localhost', $usuario = 'root', $senha='', $database='aulas', $sgbd='mysql')
+	public static function setConnection($endereco = 'localhost', $usuario = 'root', $senha='', $database='aulas')
 	{
-		self::$connection = new PDO("$sgbd:host=$endereco;dbname=$database", $usuario, $senha);
+		self::$connection = new mysqli($endereco, $usuario, $senha, $database);
 	}
 	
 	private static function getConnection()
@@ -65,15 +66,17 @@ class DB
                 $query = $query.str_replace('?', '*', $sintaxe);
             }
         }
+        $resultado = mysqli_query(self::getConnection(), $query);
         self::setLastQuery($query);
-        $stmt = self::getConnection()->query($query);
-        $data = [];
-        if($stmt)
-            $data = $stmt->fetchAll();
-        return $data;
+        $retorno = array();
+        //echo $query.'<br>';
+        while ($row = @mysqli_fetch_array($resultado)) {
+            $retorno[] = $row;
+        }
+        return $retorno;
     }
 
-    public static function insert($table, $fields, $returnId=false)
+    public static function insert($table, $fields)
     {
         $sql = "insert into ".$table.' (';
 
@@ -91,12 +94,9 @@ class DB
         }
         $sql = substr($sql, 0, -1).')';
         self::setLastQuery($sql);
-        if(self::getConnection()->query($sql)) {
-            if ($returnId)
-                return self::getConnection()->lastInsertId();
-
+        if(mysqli_query(self::getConnection(), $sql))
             return true;
-        }
+
         return false;
     }
 
@@ -108,7 +108,7 @@ class DB
             $sql = $sql." where $where";
         }
         self::setLastQuery($sql);
-        if(self::getConnection()->query($sql))
+        if(mysqli_query(self::getConnection(), $sql))
             return true;
 
         return false;
@@ -128,7 +128,7 @@ class DB
         }
         $sql = substr($sql, 0, -1)." where $where";
         self::setLastQuery($sql);
-        if(self::getConnection()->query($sql))
+        if(mysqli_query(self::getConnection(), $sql))
             return true;
 
         return false;

@@ -80,11 +80,11 @@ class ManyToOne implements Relation
 
     public function add(...$arguments)
     {
-        $this->set(DBClass::onlyPrimary($argument[0]));
+        $this->set(DBClass::onlyPrimary($arguments[0]));
     }
     public function set(...$arguments)
     {
-        $this->objeto = DBClass::onlyPrimary($argument[0]);
+        $this->objeto = DBClass::onlyPrimary($arguments[0]);
     }
     public function remove(...$arguments)
     {

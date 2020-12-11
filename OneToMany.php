@@ -82,6 +82,7 @@ class OneToMany implements Relation
         {
             $arguments = $arguments[0];
         }
+
         $this->lista = array_unique(array_map(['DBClass', 'onlyPrimary'], $arguments));
     }
 

@@ -15,18 +15,38 @@ class DBClass
     public static function create(...$arguments)
     {
         $class = get_called_class();
+        $retorno = [];
         foreach($arguments as $data)
         {
             $obj = new $class($data);
             $obj->insert();
+            $retorno[]=$obj;
         }
-        return true;
+        if(sizeof($retorno)==1) $retorno = $retorno[0];
+        return $retorno;
+    }
+    public static function new(...$arguments)
+    {
+        $class = get_called_class();
+        $retorno = [];
+        foreach($arguments as $data)
+        {
+            $obj = new $class($data);
+            $retorno[]=$obj;
+        }
+        if(sizeof($retorno)==1) $retorno = $retorno[0];
+        return $retorno;
     }
 
     public static function onlyPrimary($value)
     {
         if(is_object($value))
-            return $value->getPrimary();
+            $value = $value->getPrimary();
+
+        if($value === null)
+        {
+            throw new Exception('Não é possível adicionar NULL ao relacionamento');
+        }
         return $value;
     }
 
@@ -43,13 +63,13 @@ class DBClass
     public static function first($where = 'true')
     {
         $lista = (DB::selectObject(get_called_class(), ['where'=>$where, 'limit'=>1]));
-        return (sizeof($lista))? $lista[0] : false;
+        return (sizeof($lista))? $lista[0] : null;
     }
     public static function find($pk)
     {
         $class = get_called_class();
         $lista = (DB::selectObject($class, ['where'=> ($class::primary." = '$pk'")]));
-        return (sizeof($lista))? $lista[0] : false;
+        return (sizeof($lista))? $lista[0] : null;
     }
     
     public static function paginate($pular, $quantidade)
@@ -69,7 +89,7 @@ class DBClass
         {
             if(isset($this->data[$name]))
                 return $this->data[$name];
-            return false;
+            return null;
         }
         else
             return ($this->$name())->get();
@@ -84,7 +104,7 @@ class DBClass
                 if(isset($this->data[$key]))
                     $data[$key] = $this->data[$key];
                 else
-                    $data[$key] = false;
+                    $data[$key] = null;
             }
 
         }
@@ -101,7 +121,7 @@ class DBClass
     }
     public function save($saveRelations = true)
     {
-        $pk = $this->data[$this::primary];
+        $pk = @$this->data[$this::primary];
         if($pk!=null && $this::find($pk))
         {
             $r = $this->update();
@@ -128,7 +148,16 @@ class DBClass
 
     public function insert()
     {
-        return DB::insert($this::table, $this());
+        $return = DB::insert($this::table, $this(), true);
+        if($return===null)
+        {
+            return false;
+        }
+        else
+        {
+            $this->data[$this::primary] = $return;
+            return true;
+        }
     }
 
     public function update()
@@ -159,7 +188,7 @@ class DBClass
     {
         $function = debug_backtrace()[1]["function"];
         if(!isset($this->relations[$function]))
-            $this->relations[$function] = new ManyToOne($classOutra, $this, $fk);
+            $this->relations[$function] = new oneToMany($classOutra, $this, $fk);
         return $this->relations[$function];
     }
 
