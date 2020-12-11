@@ -12,7 +12,7 @@ class ManyToMany implements Relation
         $this->foreignKeyLocal = $foreignKeyLocal;
         $this->tabelaRel = $tabelaRel;
         $this->objLocal = $objLocal;
-        if($this->objLocal->getPrimary()!==false)
+        if($this->objLocal->getPrimary()!==null)
             $this->lista = $this->getIds();
     }
 
@@ -28,10 +28,7 @@ class ManyToMany implements Relation
 
     public function table()
     {
-        $joins = $this->classOutra::table." inner join $this->tabelaRel on $this->tabelaRel.$this->foreignKeyOutra = ".$this->classOutra::table.'.'.$this->classOutra::primary;
-        //. ' inner join '.$this->objLocal::table.' on '.$this->objLocal::table.'.'.$this->objLocal::primary. " = $this->tabelaRel.$this->foreignKeyLocal";
-
-        return $joins;
+        return DB::simpleJoin($this->classOutra::table, $this->classOutra::primary, $this->tabelaRel, $this->foreignKeyOutra);
     }
 
     public function condition($where = 'true')
@@ -46,7 +43,7 @@ class ManyToMany implements Relation
 
     public function where($where = 'true')
     {
-        if($this->objLocal->getPrimary()!==false)
+        if($this->objLocal->getPrimary()!==null)
             return DB::selectObject($this->classOutra, ['table'=>$this->table(), 'select'=>'distinct '.$this->classOutra::table.'.*','where'=> $this->condition($where)]);
         else
             return [];
@@ -56,10 +53,10 @@ class ManyToMany implements Relation
     {
         $lista = [];
 
-        if($this->objLocal->getPrimary()!==false)
+        if($this->objLocal->getPrimary()!==null)
             $lista = DB::selectObject($this->classOutra,['table'=>$this->table(), 'select'=>'distinct '.$this->classOutra::table.'.*','where'=>$this->condition($where), 'limit'=>1]);
 
-        return (sizeof($lista))? $lista[0] : false;
+        return (sizeof($lista))? $lista[0] : null;
     }
     public function getLista()
     {
@@ -69,8 +66,8 @@ class ManyToMany implements Relation
     public function get()
     {
         $primary = $this->classOutra::primary;
-        if($this->objLocal->getPrimary()!==false)
-            return DB::selectObject($this->classOutra, ['where'=> $this->classOutra::primary.' in ('.implode(',',$this->lista).')']);
+        if($this->objLocal->getPrimary()!==null)
+            return DB::selectObject($this->classOutra, ['where'=> DB::in($this->classOutra::primary, $this->lista)]);
         else
             return [];
     }
@@ -120,7 +117,7 @@ class ManyToMany implements Relation
         else {
             $listaAntiga = $this->getIds();
             $insert = array_diff($this->lista, $listaAntiga);
-            DB::delete($this->tabelaRel, $this->condition("$this->foreignKeyOutra not in (" . implode($this->lista, ',') . ')'));
+            DB::delete($this->tabelaRel, $this->condition(DB::notIn($this->foreignKeyOutra, $this->lista)));
             //echo '<br><br>' . DB::getLastQuery();
             foreach ($insert as $id) {
                 DB::insert($this->tabelaRel, [$this->foreignKeyLocal => $this->objLocal->getPrimary(), $this->foreignKeyOutra => $id]);

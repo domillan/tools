@@ -5,6 +5,26 @@ class DB
     private static $lastQuery = '""', $debug=false;
     const clausesSelect = ['select'=>'select ?', 'table'=>' from ?', 'where'=>' where ?', 'groupBy'=>' group by ?', 'having'=>' having ?', 'orderBy'=>' order by ?', 'limit'=>' limit ?', 'offset'=>' offset ?'];
 
+    public static function join($table1, $item1, $on, $type='inner')
+    {
+        return "($table $type join $table2 on $on)";
+    }
+
+    public static function simpleJoin($table1, $item1, $table2, $item2, $type='inner')
+    {
+        return "($table $type join $table2 on $table.$item1 = $table2.$item2)";
+    }
+
+    public static function in($field, $array)
+    {
+        $lista = implode($array, ',');
+        return "$field in ($lista)";
+    }
+    public static function notIn($field, $array)
+    {
+        $lista = implode($array, ',');
+        return "$field not in ($lista)";
+    }
 
     public static function debugOn()
     {

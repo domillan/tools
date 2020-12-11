@@ -10,7 +10,7 @@ class ManyToOne implements Relation
         $this->classOutra = $classOutra;
         $this->foreignKey = $foreignKey;
         $this->objLocal = $objLocal;
-        if($this->objLocal->getPrimary()!==false)
+        if($this->objLocal->getPrimary()!==null)
         $this->objeto = $this->getId();
     }
 
@@ -24,8 +24,8 @@ class ManyToOne implements Relation
 
     public function table()
     {
-        return $this->classOutra::table." inner join ".$this->objLocal::table.' on '.$this->objLocal::table.".$this->foreignKey = ".$this->classOutra::table.".".$this->classOutra::primary;
-    }
+        return DB::simpleJoin($this->classOutra::table, $this->classOutra::primary, $this->objLocal::table, $this->foreignKey);
+     }
 
     public function condition($where = 'true')
     {
@@ -39,20 +39,20 @@ class ManyToOne implements Relation
 
     public function where($where = 'true')
     {
-        if($this->objLocal->getPrimary()!==false)
+        if($this->objLocal->getPrimary()!==null)
             return DB::selectObject($this->classOutra, ['table'=> $this->table(),'select'=>'distinct '.$this->classOutra::table.'.*', 'where'=> $this->condition($where)]);
         else
-            return false;
+            return null;
     }
 
     public function first($where = 'true')
     {
         $lista = [];
 
-        if($this->objLocal->getPrimary()!==false)
+        if($this->objLocal->getPrimary()!==null)
             $lista = $this->where($where);
 
-        return (sizeof($lista))? $lista[0] : false;
+        return (sizeof($lista))? $lista[0] : null;
     }
     public function getIdObjeto()
     {

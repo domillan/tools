@@ -10,7 +10,7 @@ class OneToMany implements Relation
         $this->classOutra = $classOutra;
         $this->foreignKey = $foreignKey;
         $this->objLocal = $objLocal;
-        if($this->objLocal->getPrimary()!==false)
+        if($this->objLocal->getPrimary()!==null)
         $this->lista = $this->getIds();
     }
 
@@ -36,7 +36,7 @@ class OneToMany implements Relation
 
     public function where($where = 'true')
     {
-        if($this->objLocal->getPrimary()!==false)
+        if($this->objLocal->getPrimary()!==null)
             return DB::selectObject($this->classOutra, ['where'=> $this->condition($where)]);
         else
             return [];
@@ -46,10 +46,10 @@ class OneToMany implements Relation
     {
         $lista = [];
 
-        if($this->objLocal->getPrimary()!==false)
+        if($this->objLocal->getPrimary()!==null)
         $lista = DB::selectObject($this->classOutra,['where'=>$this->condition($where), 'limit'=>1]);
 
-        return (sizeof($lista))? $lista[0] : false;
+        return (sizeof($lista))? $lista[0] : null;
     }
     public function getLista()
     {
@@ -59,8 +59,8 @@ class OneToMany implements Relation
     public function get()
     {
         $primary = $this->classOutra::primary;
-        if($this->objLocal->getPrimary()!==false)
-            return DB::selectObject($this->classOutra, ['where'=> $this->classOutra::primary.' in ('.implode(',',$this->lista).')']);
+        if($this->objLocal->getPrimary()!==null)
+            return DB::selectObject($this->classOutra, ['where'=> DB::in($this->classOutra::primary, $this->lista)]);
         else
             return [];
     }
@@ -108,8 +108,8 @@ class OneToMany implements Relation
     {
             $delete = array_diff($this->getIds(), $this->lista);
             $primary = $this->classOutra::primary;
-            DB::update($this->classOutra::table, [$this->foreignKey=>$this->objLocal->getPrimary()], "$primary in (".implode(',',$this->lista).')');
-            DB::update($this->classOutra::table, [$this->foreignKey=>null], "$primary in (".implode($delete, ',').')');
+            DB::update($this->classOutra::table, [$this->foreignKey=>$this->objLocal->getPrimary()], DB::in($primary, $this->lista));
+            DB::update($this->classOutra::table, [$this->foreignKey=>null], DB::in($primary, $delete));
     }
 
     public function refresh()
