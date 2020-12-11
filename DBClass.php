@@ -50,25 +50,30 @@ class DBClass
         return $value;
     }
 
+    public static function select($arguments = [])
+    {
+        return DB::selectObject(get_called_class(), $arguments);
+    }
+
     public static function all()
     {
-        return DB::selectObject(get_called_class());
+        return self::select();
     }
 
     public static function where($where = 'true')
     {
-        return DB::selectObject(get_called_class(), ['where'=>$where]);
+        return self::select(['where'=>$where]);
     }
 
     public static function first($where = 'true')
     {
-        $lista = (DB::selectObject(get_called_class(), ['where'=>$where, 'limit'=>1]));
+        $lista = self::select(['where'=>$where, 'limit'=>1]);
         return (sizeof($lista))? $lista[0] : null;
     }
     public static function find($pk)
     {
         $class = get_called_class();
-        $lista = (DB::selectObject($class, ['where'=> ($class::primary." = '$pk'")]));
+        $lista = self::select(['where'=> ($class::primary." = '$pk'")]);
         return (sizeof($lista))? $lista[0] : null;
     }
     
