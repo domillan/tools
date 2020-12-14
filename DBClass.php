@@ -84,7 +84,7 @@ class DBClass
     
     public function __set ($name, $value)
     {
-        if(isset($this::fields[$name]))
+        if(in_array($name, $this::fields))
             $this->data[$name] = $value;
     }
     public function __get ($name)

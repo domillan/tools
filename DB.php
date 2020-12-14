@@ -47,9 +47,18 @@ class DB
         return '"'.self::$lastQuery.'"<br>';
     }
 
-	public static function setConnection($endereco = 'localhost', $usuario = 'root', $senha='', $database='aulas', $sgbd='mysql')
+	public static function setConnection($endereco = 'localhost', $usuario = 'root', $senha='', $database='aulas')
 	{
-		self::$connection = new PDO("$sgbd:host=$endereco;dbname=$database", $usuario, $senha);
+		try
+		{
+			self::$connection = new PDO("mysql:host=$endereco;dbname=$database", $usuario, $senha);
+			self::$connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			self::$connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+		}
+		catch (PDOException $e) {
+			echo 'Connection failed: ' . $e->getMessage();
+		}
+		
 	}
 	
 	private static function getConnection()
@@ -95,23 +104,21 @@ class DB
 
     public static function insert($table, $fields, $returnId=false)
     {
-        $sql = "insert into ".$table.' (';
+        $sql = "insert into $table (";
+		$values = ' values (';
 
-        foreach($fields as $field=>$value)
+        foreach($fields as $field => $value)
         {
-            $sql = $sql."$field,";
+            $sql = "$sql $field,";
+			$values = "$values :$field,";
         }
-        $sql = substr($sql, 0, -1).') values (';
-        foreach($fields as $value)
-        {
-            if($value != null)
-                $sql = $sql."'$value',";
-            else
-                $sql = $sql."null,";
-        }
-        $sql = substr($sql, 0, -1).')';
+        
+        $sql = substr($sql, 0, -1).') '. substr($values, 0, -1).')';
         self::setLastQuery($sql);
-        if(self::getConnection()->query($sql)) {
+		
+		$stmt = self::getConnection()->prepare($sql);
+		
+        if($stmt->execute($fields)) {
             if ($returnId)
                 return self::getConnection()->lastInsertId();
 
@@ -120,7 +127,7 @@ class DB
         return false;
     }
 
-    public static function delete($table, $where=null)
+    public static function delete($table, $where=0)
     {
         $sql = 'delete from '.$table;
         if($where!=null)
@@ -134,21 +141,17 @@ class DB
         return false;
     }
 
-    public static function update($table, $fields, $where=null)
+    public static function update($table, $fields, $where=0)
     {
-        $sql = "update ".$table." set ";
+        $sql = "update ".$table." set";
         foreach($fields as $field => $value)
         {
-            if($value != null)
-            {
-                $sql = $sql."$field = '$value',";
-            }
-            else
-                $sql = $sql."$field = null,";
+            $sql = $sql." $field = :$field,";
         }
         $sql = substr($sql, 0, -1)." where $where";
         self::setLastQuery($sql);
-        if(self::getConnection()->query($sql))
+		$stmt = self::getConnection()->prepare($sql);
+        if($stmt->execute($fields));
             return true;
 
         return false;
