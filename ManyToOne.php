@@ -59,11 +59,11 @@ class ManyToOne implements Relation
         return $this->objeto;
     }
 
-    public function get()
+    public function get($where = 'true')
     {
         $tableOutra = $this->classOutra::table;
         $tableLocal = $this->objLocal::table;
-        return DB::selectObject($this->classOutra, [ 'where'=> $this->objeto." = ".$this->classOutra::primary]);
+        return DB::selectObject($this->classOutra, [ 'where'=> $this->objeto." = ".$this->classOutra::primary . " and $where"]);
     }
     public function __set ($name, $value)
     {

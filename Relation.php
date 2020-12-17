@@ -8,7 +8,7 @@ interface Relation
 
     public function first($where = 'true');
     
-    public function get();
+    public function get($where = 'true');
 
     public function set(...$arguments);
     

@@ -56,11 +56,11 @@ class OneToMany implements Relation
         return $this->lista;
     }
 
-    public function get()
+    public function get($where = 'true')
     {
         $primary = $this->classOutra::primary;
         if($this->objLocal->getPrimary()!==null)
-            return DB::selectObject($this->classOutra, ['where'=> DB::in($this->classOutra::primary, $this->lista)]);
+            return DB::selectObject($this->classOutra, ['where'=> DB::in($this->classOutra::primary, $this->lista) . " and $where"]);
         else
             return [];
     }
