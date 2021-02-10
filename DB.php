@@ -4,15 +4,15 @@ class DB
     private static $connection = null;
     private static $lastQuery = '""', $debug=false;
     const clausesSelect = ['select'=>'select ?', 'table'=>' from ?', 'where'=>' where ?', 'groupBy'=>' group by ?', 'having'=>' having ?', 'orderBy'=>' order by ?', 'limit'=>' limit ?', 'offset'=>' offset ?'];
-
+    
     public static function join($table1, $item1, $on, $type='inner')
     {
-        return "($table $type join $table2 on $on)";
+        return "($table1 $type join $table2 on $on)";
     }
 
     public static function simpleJoin($table1, $item1, $table2, $item2, $type='inner')
     {
-        return "($table $type join $table2 on $table.$item1 = $table2.$item2)";
+        return "($table1 $type join $table2 on $table1.$item1 = $table2.$item2)";
     }
 
     public static function in($field, $array)
@@ -60,7 +60,7 @@ class DB
 		}
 		
 	}
-	
+
 	private static function getConnection()
 	{
 		if(!self::$connection)
@@ -69,6 +69,29 @@ class DB
         return self::$connection;
 			//throw new Exception('Banco de dados não definido, execute a função DB::setConnection().');
 	}
+
+    public static function beginTransaction()
+    {
+        $stmt = self::getConnection()->beginTransaction();
+    }
+
+    public static function commit()
+    {
+        $stmt = self::getConnection()->commit();
+    }
+
+    public static function rollback()
+    {
+        $stmt = self::getConnection()->rollBack();
+    }
+
+	public static function query($sql)
+    {
+        self::setLastQuery($sql);
+
+        return self::getConnection()->query($sql);
+    }
+
     public static function selectObject($class, $queryData = [])
     {
         $retorno = [];
@@ -141,7 +164,7 @@ class DB
         return false;
     }
 
-    public static function update($table, $fields, $where=0)
+    public static function update($table, $fields, $where='true')
     {
         $sql = "update ".$table." set";
         foreach($fields as $field => $value)

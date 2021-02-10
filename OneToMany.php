@@ -42,6 +42,26 @@ class OneToMany implements Relation
             return [];
     }
 
+    public function select($queryData = [], $simpleData = false)
+    {
+        if($this->objLocal->getPrimary()!==null){
+            if(! isset($queryData['where'])) {
+                $queryData['where'] = $this->condition('true');
+            }
+            else {
+                $queryData['where'] = $this->condition($queryData['where']);
+            }
+
+            if($simpleData)
+                return DB::select($this->classOutra::table, $queryData);
+            else
+                return DB::selectObject($this->classOutra, $queryData);
+        }
+        else{
+            return [];
+        }
+    }
+
     public function first($where = 'true')
     {
         $lista = [];

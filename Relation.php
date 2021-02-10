@@ -4,6 +4,8 @@ interface Relation
 {
     public function all();
 
+    public function select($queryData = [], $simpleData = false);
+    
     public function where($where = 'true');
 
     public function first($where = 'true');

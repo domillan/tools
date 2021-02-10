@@ -45,6 +45,33 @@ class ManyToOne implements Relation
             return null;
     }
 
+    public function select($queryData = [], $simpleData=false)
+    {
+        if($this->objLocal->getPrimary()!==null){
+            if(! isset($queryData['table'])) {
+                $queryData['table'] = 'distinct '.$this->classOutra::table.'.*';
+            }
+            if(! isset($queryData['select'])) {
+                $queryData['select'] = $this->table();
+            }
+            if(! isset($queryData['where'])) {
+                $queryData['where'] = $this->condition('true');
+            }
+            else {
+                $queryData['where'] = $this->condition($queryData['where']);
+            }
+
+            if($simpleData)
+                return DB::select($this->classOutra::table, $queryData);
+            else
+                return DB::selectObject($this->classOutra, $queryData);
+        }
+        else{
+
+            return null;
+        }
+    }    
+
     public function first($where = 'true')
     {
         $lista = [];

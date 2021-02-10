@@ -205,11 +205,11 @@ class DBClass
         return $this->relations[$function];
     }
 
-    public function ManyToMany($classOutra, $tabelaRel, $fkOutra, $fkLocal)
+    public function ManyToMany($classOutra, $tabelaRel, $fkOutra, $fkLocal, $pivotDefault=[])
     {
         $function = debug_backtrace()[1]["function"];
         if(!isset($this->relations[$function]))
-            $this->relations[$function] = new ManyToMany($classOutra, $this, $tabelaRel, $fkOutra, $fkLocal);
+            $this->relations[$function] = new ManyToMany($classOutra, $this, $tabelaRel, $fkOutra, $fkLocal,$pivotDefault);
         return $this->relations[$function];
     }
 
