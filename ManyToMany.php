@@ -94,9 +94,9 @@ class ManyToMany implements Relation
     public function get($where = 'true')
     {
         $primary = $this->classOutra::primary;
-        if($this->objLocal->getPrimary()!==null)
+        //if($this->objLocal->getPrimary()!==null)
             return DB::selectObject($this->classOutra, ['where'=> DB::in($this->classOutra::primary, $this->lista) . " and $where"]);
-        else
+        //else
             return [];
     }
     public function __set ($name, $value)
@@ -213,26 +213,33 @@ class ManyToMany implements Relation
     }
     public function save()
     {
-        $this->fillPivots();
-        if(!sizeof($this->lista))
-            DB::delete($this->tabelaRel, $this->condition());
-        else {
-            $listaAntiga = $this->getIds();
-            $insert = array_diff($this->lista, $listaAntiga);
-            $update = array_intersect($listaAntiga, $this->lista);
+		if($this->objLocal->getPrimary()!==null){
 
-            DB::delete($this->tabelaRel, $this->condition(DB::notIn($this->foreignKeyOutra, $this->lista)));
-            //echo '<br><br>' . DB::getLastQuery();
-            foreach ($insert as $id) {
-                DB::insert($this->tabelaRel, $this->pivots[$id]);
-                //echo '<br><br>'.DB::getLastQuery();
-            }
+			$this->fillPivots();
+			if(!sizeof($this->lista))
+				DB::delete($this->tabelaRel, $this->condition());
+			else {
+				$listaAntiga = $this->getIds();
+				$insert = array_diff($this->lista, $listaAntiga);
+				$update = array_intersect($listaAntiga, $this->lista);
 
-            foreach ($update as $id) {
-                DB::update($this->tabelaRel, $this->pivots[$id], $this->condition("$this->tabelaRel.$this->foreignKeyOutra = $id"));
-                //echo '<br><br>'.DB::getLastQuery();
-            }
-        }
+				DB::delete($this->tabelaRel, $this->condition(DB::notIn($this->foreignKeyOutra, $this->lista)));
+				//echo '<br><br>' . DB::getLastQuery();
+				foreach ($insert as $id) {
+					DB::insert($this->tabelaRel, $this->pivots[$id]);
+					//echo '<br><br>'.DB::getLastQuery();
+				}
+
+				foreach ($update as $id) {
+					DB::update($this->tabelaRel, $this->pivots[$id], $this->condition("$this->tabelaRel.$this->foreignKeyOutra = $id"));
+					//echo '<br><br>'.DB::getLastQuery();
+				}
+			}
+			return true;
+		}
+		else{
+			return false;
+		}
     }
 
     private function fillPivots()
@@ -245,7 +252,7 @@ class ManyToMany implements Relation
                 if (!isset($this->pivots[$id][$this->foreignKeyOutra]))
                     $this->pivots[$id][$this->foreignKeyOutra] = $id;
 
-                if (!isset($this->pivots[$id][$this->foreignKeyLocal]))
+                if (!(isset($this->pivots[$id][$this->foreignKeyLocal]) && $this->pivots[$id][$this->foreignKeyLocal] != null))
                     $this->pivots[$id][$this->foreignKeyLocal] = $localId;
             }
             else

@@ -79,10 +79,7 @@ class OneToMany implements Relation
     public function get($where = 'true')
     {
         $primary = $this->classOutra::primary;
-        if($this->objLocal->getPrimary()!==null)
-            return DB::selectObject($this->classOutra, ['where'=> DB::in($this->classOutra::primary, $this->lista) . " and $where"]);
-        else
-            return [];
+        return DB::selectObject($this->classOutra, ['where'=> DB::in($this->classOutra::primary, $this->lista) . " and $where"]);
     }
     public function __set ($name, $value)
     {
@@ -126,10 +123,16 @@ class OneToMany implements Relation
     }
     public function save()
     {
+		if($this->objLocal->getPrimary()!==null){
             $delete = array_diff($this->getIds(), $this->lista);
             $primary = $this->classOutra::primary;
             DB::update($this->classOutra::table, [$this->foreignKey=>$this->objLocal->getPrimary()], DB::in($primary, $this->lista));
             DB::update($this->classOutra::table, [$this->foreignKey=>null], DB::in($primary, $delete));
+			return true;
+		}
+		else{
+			return false;
+		}
     }
 
     public function refresh()

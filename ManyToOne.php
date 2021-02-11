@@ -17,7 +17,7 @@ class ManyToOne implements Relation
     public function getId()
     {
         if($obj = $this->first())
-        return $obj->getPrimary();
+			return $obj->getPrimary();
         else
             return null;
     }
@@ -119,9 +119,14 @@ class ManyToOne implements Relation
     }
     public function save()
     {
-        $this->objLocal->set([$this->foreignKey => $this->objeto]);
-        return DB::update($this->objLocal::table, [$this->foreignKey => $this->objeto],$this->objLocal::primary .' = ' . $this->objLocal->getPrimary());
-    }
+		if($this->objLocal->getPrimary()!==null){  		
+			$this->objLocal->set([$this->foreignKey => $this->objeto]);
+			return DB::update($this->objLocal::table, [$this->foreignKey => $this->objeto],$this->objLocal::primary .' = ' . $this->objLocal->getPrimary());
+		}
+		else{
+			return false;
+		}
+	}
 
     public function refresh()
     {
