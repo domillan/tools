@@ -1,26 +1,27 @@
 <?php
 
-require_once("tools/DB.php");
-require_once("tools/DBClass.php");
-require_once("tools/Relation.php");
-require_once("tools/OneToMany.php");
-require_once("tools/ManyToOne.php");
-require_once("tools/ManyToMany.php");
-
-$GLOBALS['PATH_INFO'] = pathinfo($_SERVER['SCRIPT_FILENAME']);
-$GLOBALS['ROOT'] = str_replace ( '/'.$GLOBALS['PATH_INFO']['basename'] , '' , $_SERVER['SCRIPT_NAME']);
-
 spl_autoload_register(function ($name) {
-    include_once("model/$name.php");
+	if(file_exists("tools$name.php"))
+		include_once("tools/$name.php");
+	else
+		include_once("model/$name.php");
 });
+
+function init($infos)
+{
+	foreach($infos as $key => $data)
+	{
+		if (!isset($GLOBALS[$key]))
+			$GLOBALS[$key] = data;
+	}
+	$GLOBALS['PATH_INFO'] = pathinfo($_SERVER['SCRIPT_FILENAME']);
+	$GLOBALS['ROOT'] = str_replace ( '/'.$GLOBALS['PATH_INFO']['basename'] , '' , $_SERVER['SCRIPT_NAME']);
+}
 
 function redirect($url, $permanent = false)
 {
     if (headers_sent() === false)
-    {
         header('Location: ' . $url, true, ($permanent === true) ? 301 : 302);
-    }
-
     exit();
 }
 
@@ -76,12 +77,8 @@ function root($path='')
 	return "/$path";
 }
 
-
-function email($to, $subject, $message, $from)
-{
-	return mail($to, $subject, $message, "From: $from");
-}
-
 session_start();
+
 include_once(path());
+
 ?>
