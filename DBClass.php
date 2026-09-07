@@ -77,7 +77,7 @@ class DBClass
     
     public static function paginate($pular, $quantidade, $orderBy="ASC")
     {
-        return self::select(['limit'=>$quantidade,'offset'=>$pular, 'orderBy'=>$orderBy]);
+        return self::select(['orderBy'=>$orderBy, 'limit'=>$quantidade,'offset'=>$pular]);
     }
     
     public function __set ($name, $value)
