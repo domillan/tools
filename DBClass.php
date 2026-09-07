@@ -75,9 +75,9 @@ class DBClass
         return (sizeof($lista))? $lista[0] : null;
     }
     
-    public static function paginate($pular, $quantidade)
+    public static function paginate($pular, $quantidade, $orderBy="ASC")
     {
-        return self::select(['limit'=>$quantidade,'offset'=>$pular]);
+        return self::select(['limit'=>$quantidade,'offset'=>$pular, 'orderBy'=>$orderBy]);
     }
     
     public function __set ($name, $value)
