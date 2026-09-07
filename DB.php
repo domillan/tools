@@ -12,18 +12,23 @@ class DB
 
     public static function simpleJoin($table1, $item1, $table2, $item2, $type='inner')
     {
-	//return self::join($table1, $table2, "$table1.$item1 = $table2.$item2", $type);
         return "($table1 $type join $table2 on $table1.$item1 = $table2.$item2)";
     }
 
     public static function in($field, $array)
     {
-        $lista = implode($array, ',');
+		if(sizeof($array)==0)
+			return 'false';
+		
+        $lista = implode(',', $array);
         return "$field in ($lista)";
     }
     public static function notIn($field, $array)
     {
-        $lista = implode($array, ',');
+		if(sizeof($array)==0)
+			return 'true';
+		
+        $lista = implode(',', $array);
         return "$field not in ($lista)";
     }
 

@@ -1,7 +1,7 @@
 <?php
 //classLocal tem uma classOutra
 //classOutra tem várias classLocal
-include_once('Relation.php');
+
 class ManyToOne implements Relation
 {
     private $classOutra, $objLocal, $foreignKey, $objeto;
@@ -29,7 +29,7 @@ class ManyToOne implements Relation
 
     public function condition($where = 'true')
     {
-        return $this->objLocal::table.'.'.$this->objLocal::primary.' = '.$this->objLocal->getPrimary()." and $where";
+        return $this->objLocal::table.'.'.$this->objLocal::primary.' = '.$this->objLocal->getPrimary()." and ($where)";
     }
 
     public function all()
@@ -108,15 +108,25 @@ class ManyToOne implements Relation
     public function add(...$arguments)
     {
         $this->set(DBClass::onlyPrimary($arguments[0]));
+		$this->updateObjLocal();
     }
     public function set(...$arguments)
     {
         $this->objeto = DBClass::onlyPrimary($arguments[0]);
+		$this->updateObjLocal();
     }
     public function remove(...$arguments)
     {
         $this->objeto = null;
+		$this->updateObjLocal();
     }
+	
+	public function updateObjLocal()
+	{
+		$fk = $this->foreignKey;
+		$this->objLocal->$fk = $this->objeto;
+	}
+	
     public function save()
     {
 		if($this->objLocal->getPrimary()!==null){  		

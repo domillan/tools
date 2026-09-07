@@ -1,11 +1,7 @@
 <?php
-spl_autoload_register(function ($name) {
-    include_once($name . '.php');
-});
 
 class DBClass
 {
-
     protected $data = [],$relations=[];
 
     public function __construct($arguments=[])
@@ -35,6 +31,8 @@ class DBClass
             $retorno[]=$obj;
         }
         if(sizeof($retorno)==1) $retorno = $retorno[0];
+		elseif(sizeof($retorno)==0) $retorno = new $class();
+		
         return $retorno;
     }
 
@@ -79,7 +77,7 @@ class DBClass
     
     public static function paginate($pular, $quantidade)
     {
-        return DB::select('pessoa', ['limit'=>$quantidade,'offset'=>$pular]);
+        return self::select('pessoa', ['limit'=>$quantidade,'offset'=>$pular]);
     }
     
     public function __set ($name, $value)
@@ -180,10 +178,12 @@ class DBClass
 
     public function refresh()
     {
-        $pk = $this->data[$this->primary];
+		$class = get_called_class();
+        $pk = $this->data[$class::primary];
         if($self = $this::find($pk))
         {
             $this->set($self());
+			$this->relations=[];
             return true;
         }
         return false;
@@ -193,11 +193,11 @@ class DBClass
     {
         $function = debug_backtrace()[1]["function"];
         if(!isset($this->relations[$function]))
-            $this->relations[$function] = new oneToMany($classOutra, $this, $fk);
+            $this->relations[$function] = new OneToMany($classOutra, $this, $fk);
         return $this->relations[$function];
     }
 
-    public function ManyToOne($classOutra, $fk)
+    public function manyToOne($classOutra, $fk)
     {
         $function = debug_backtrace()[1]["function"];
         if(!isset($this->relations[$function]))
@@ -205,7 +205,7 @@ class DBClass
         return $this->relations[$function];
     }
 
-    public function ManyToMany($classOutra, $tabelaRel, $fkOutra, $fkLocal, $pivotDefault=[])
+    public function manyToMany($classOutra, $tabelaRel, $fkOutra, $fkLocal, $pivotDefault=[])
     {
         $function = debug_backtrace()[1]["function"];
         if(!isset($this->relations[$function]))
