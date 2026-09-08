@@ -9,12 +9,25 @@ class Helper
 
 	public static function saveArchive($file, $name, $path)
 	{
-		//salva o arquivo
+		if (!is_dir($path)){
+			mkdir($path, 0755, true);
+		}
+		$filePath = rtrim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $name;
+		
+		self::deleteArchive($filePath);
+		
+		if (!move_uploaded_file($file['tmp_name'], $filePath)) {
+			throw new RuntimeException("Não foi possível salvar o arquivo.");
+		}
+
+		return $filePath;
 	}
 	
 	public static function deleteArchive($path)
 	{
-		//apaga o arquivo
+		if (file_exists($path))
+			unlink($path);
+		
 	}
 
 ?>
