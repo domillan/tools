@@ -87,7 +87,6 @@ class DBClass
     }
     public function __get ($name)
     {
-
         if(in_array($name, $this::fields))
         {
             if(isset($this->data[$name]))
@@ -169,12 +168,26 @@ class DBClass
         return DB::update($this::table, $this(),$this::primary." = '$pk'");
     }
 
-    public function delete()
+    public function delete($forceHardDelete = false)
     {
-        $pk = $this->data[$this::primary];
-        return DB::delete($this::table,$this::primary." = '$pk'");
+		if($this::softDelete == true && $forceHardDelete == false)
+			return $this->softDelete();
+		else
+			return $this->hardDelete();
     }
-
+	
+	protected function hardDelete()
+    {
+		$pk = $this->data[$this::primary];
+        return DB::delete($this::table,$this::primary." = '$pk'");
+	}
+	
+	protected function softDelete()
+    {
+		$pk = $this->data[$this::primary];
+		return DB::query("UPDATE ".$this::table. "SET deleted_at NOW() WHERE ",$this::primary." = '$pk'");
+		
+	}
 
     public function refresh()
     {

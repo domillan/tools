@@ -53,7 +53,7 @@ class DB
         return '"'.self::$lastQuery.'"<br>';
     }
 
-	public static function setConnection($endereco = 'localhost', $usuario = 'root', $senha='', $database='aulas')
+	public static function setConnection($endereco = 'localhost', $usuario = 'root', $senha='', $database='')
 	{
 		try
 		{

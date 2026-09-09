@@ -1,7 +1,8 @@
 <?php
 
 spl_autoload_register(function ($name) {
-	if(file_exists("tools$name.php"))
+
+	if(file_exists("tools/$name.php"))
 		include_once("tools/$name.php");
 	else
 		include_once("model/$name.php");
@@ -12,10 +13,14 @@ function init($infos)
 	foreach($infos as $key => $data)
 	{
 		if (!isset($GLOBALS[$key]))
-			$GLOBALS[$key] = data;
+			$GLOBALS[$key] = $data;
 	}
 	$GLOBALS['PATH_INFO'] = pathinfo($_SERVER['SCRIPT_FILENAME']);
 	$GLOBALS['ROOT'] = str_replace ( '/'.$GLOBALS['PATH_INFO']['basename'] , '' , $_SERVER['SCRIPT_NAME']);
+	
+	session_start();
+
+	include_once(path());
 }
 
 function redirect($url, $permanent = false)
@@ -77,8 +82,5 @@ function root($path='')
 	return "/$path";
 }
 
-session_start();
-
-include_once(path());
 
 ?>
